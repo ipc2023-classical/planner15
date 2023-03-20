@@ -383,6 +383,12 @@ def parse_args():
         "--debug", action="store_true",
         help="alias for --build=debug32 --validate")
     driver_other.add_argument(
+        "--transform-task",
+        help='path to or name of external program that transforms output.sas (e.g. h2-mutexes)')
+    driver_other.add_argument(
+        "--transform-task-options",
+        help='comma-separated list of key-value option pairs for task transformation (e.g. h2_time_limit,10)')
+    driver_other.add_argument(
         "--validate", action="store_true",
         help='validate plans (implied by --debug); needs "validate" (VAL) on PATH')
     driver_other.add_argument(
@@ -471,7 +477,7 @@ def parse_args():
             parser, "--portfolio-bound must not be negative.")
     if args.portfolio_single_plan and not args.portfolio:
         print_usage_and_exit_with_driver_input_error(
-            parser, "--portfolio-single_plan may only be used for portfolios.")
+            parser, "--portfolio-single-plan may only be used for portfolios.")
 
     if not args.version and not args.show_aliases and not args.cleanup:
         _set_components_and_inputs(parser, args)
