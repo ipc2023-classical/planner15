@@ -31,6 +31,7 @@ Stage: build
     ./ILOG_COS_20.10_LINUX_X86_64.bin -DLICENSE_ACCEPTED=TRUE -i silent
 
     export DOWNWARD_CPLEX_ROOT=/opt/ibm/ILOG/CPLEX_Studio201/cplex/
+    export DOWNWARD_CPLEX_CONCERT64=/opt/ibm/ILOG/CPLEX_Studio201/concert/
 
     ##Build OSI
     tar xvzf Osi-0.107.9.tgz
@@ -69,8 +70,9 @@ Stage: run
     driver
     builds/release64/bin/
     third-party/bliss-0.73/
-    #/opt/ibm/ILOG/CPLEX_Studio201/cplex/
-    #/opt/coin/
+    /opt/ibm/ILOG/CPLEX_Studio201/cplex/
+    /opt/ibm/ILOG/CPLEX_Studio201/concert/
+    /opt/coin/
 
 %post
     apt-get update
@@ -83,16 +85,16 @@ Stage: run
     PROBLEMFILE="$2"
     PLANFILE="$3"
 
-    pypy3 fast-downward.py \
+    pypy3 /fast-downward.py \
         --plan-file "$PLANFILE" \
         --build release64 \
         --overall-memory-limit 8000M \
         --overall-time-limit 30m \
-        --transform-task builds/release64/bin/preprocess-h2 \
+        --transform-task /builds/release64/bin/preprocess-h2 \
         --transform-task-options h2_time_limit,180 \
         "$DOMAINFILE" "$PROBLEMFILE" \
-        --decoupling "fork" \
-        --search "astar(lmcut)"
+        --decoupling "lp_general(factoring_time_limit=30, memory_limit=7000, add_cg_sccs=true, strategy=mm_approx, min_flexibility=0.8)" \
+        --search "astar(lmcut, pruning=stubborn_sets_decoupled(min_pruning_ratio=0.25, special_case_optimizations=true, use_single_var_ifork_optimization=true), symmetry=symmetry_state_pruning(lex_prices=true, lex_num_states=false, lex_goal_cost=false))"
 
 %labels
 Name        DecStar 2023

@@ -229,7 +229,7 @@ GraphCreator::create_permutation_from_state_to_state(const GlobalState &state,
 void GraphCreator::add_options_to_parser(OptionParser &parser) {
     parser.add_option<int>("stop_after_false_generated",
                            "Stopping after the Bliss software generated too many false generators",
-                           to_string(numeric_limits<int>::max()));
+                           "infinity");
     parser.add_option<int>("time_bound",
                            "Stopping after the Bliss software reached the time bound",
                            "0");
