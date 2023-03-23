@@ -59,7 +59,7 @@ def adapt_args(args, search_cost_type, heuristic_cost_type, plan_manager):
                 search = search.replace(name, str(value))
             search = adapt_heuristic_cost_type(search, heuristic_cost_type)
             args[index + 1] = search
-            break
+            #break for configs with --if-unit-cost there might be multiple bounds to set
 
 
 def run_search(executable, args, sas_file, plan_manager, time, memory):
@@ -214,7 +214,7 @@ def run(portfolio, executable, sas_file, plan_manager, time, memory):
     attributes = get_portfolio_attributes(portfolio)
     configs = attributes["CONFIGS"]
     optimal = attributes["OPTIMAL"]
-    only_last_config_improves = attributes["ONLY_LAST_CONFIG_IMPROVES"] or False
+    only_last_config_improves = attributes["ONLY_LAST_CONFIG_IMPROVES"] if "ONLY_LAST_CONFIG_IMPROVES" in attributes else False
     final_config = attributes.get("FINAL_CONFIG")
     final_config_builder = attributes.get("FINAL_CONFIG_BUILDER")
     if "TIMEOUT" in attributes:
