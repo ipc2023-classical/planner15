@@ -60,7 +60,7 @@ fast_downward_plugin(
         globals
         heuristic
         ipc_max_heuristic
-        # iterated_search TODO fix option parsing
+        iterated_search
         lazy_search
         max_evaluator
         operator
