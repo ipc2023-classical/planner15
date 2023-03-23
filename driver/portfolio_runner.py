@@ -106,7 +106,7 @@ def run_sat_config(configs, pos, search_cost_type, heuristic_cost_type,
 
 
 def run_sat(configs, executable, sas_file, plan_manager, final_config,
-            final_config_builder, timeout, memory):
+            final_config_builder, timeout, memory, only_last_config_improves=False):
     # If the configuration contains S_COST_TYPE or H_COST_TRANSFORM and the task
     # has non-unit costs, we start by treating all costs as one. When we find
     # a solution, we rerun the successful config with real costs.
@@ -148,6 +148,9 @@ def run_sat(configs, executable, sas_file, plan_manager, final_config,
                 if final_config_builder:
                     print("Build final config.")
                     final_config = final_config_builder(args)
+                    break
+                if only_last_config_improves:
+                    final_config = configs[-1][1]
                     break
 
         if final_config:
@@ -211,6 +214,7 @@ def run(portfolio, executable, sas_file, plan_manager, time, memory):
     attributes = get_portfolio_attributes(portfolio)
     configs = attributes["CONFIGS"]
     optimal = attributes["OPTIMAL"]
+    only_last_config_improves = attributes["ONLY_LAST_CONFIG_IMPROVES"] or False
     final_config = attributes.get("FINAL_CONFIG")
     final_config_builder = attributes.get("FINAL_CONFIG_BUILDER")
     if "TIMEOUT" in attributes:
@@ -234,5 +238,5 @@ def run(portfolio, executable, sas_file, plan_manager, time, memory):
     else:
         exitcodes = run_sat(
             configs, executable, sas_file, plan_manager, final_config,
-            final_config_builder, timeout, memory)
+            final_config_builder, timeout, memory, only_last_config_improves)
     return returncodes.generate_portfolio_exitcode(list(exitcodes))

@@ -53,4 +53,4 @@ CONFIGS = [
         "--always"])
      ]
 
-IMPROVING_CONFIGS = [3]
+ONLY_LAST_CONFIG_IMPROVES = True
