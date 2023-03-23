@@ -1,0 +1,110 @@
+# Stage 1: Compile the planner
+Bootstrap: docker
+From: ubuntu:kinetic
+Stage: build
+
+%files
+    .
+    $IPC_THIRD_PARTY/ILOG_COS_20.10_LINUX_X86_64.bin ILOG_COS_20.10_LINUX_X86_64.bin
+    $IPC_THIRD_PARTY/Osi-0.107.9.tgz Osi-0.107.9.tgz
+
+%post
+    ## Install all dependencies.
+    apt-get update
+    apt-get -y install --no-install-recommends cmake make g++ pypy3 default-jre-headless zlib1g-dev
+
+    ## Clear local build directories.
+    rm -rf /builds
+
+    ## Build bliss
+    cd third-party/bliss-0.73
+
+    make clean
+    make
+    make lib
+
+    export PATH="/third-party/bliss-0.73:$PATH"
+
+    cd ../..
+
+    ## Build CPLEX
+    ./ILOG_COS_20.10_LINUX_X86_64.bin -DLICENSE_ACCEPTED=TRUE -i silent
+
+    export DOWNWARD_CPLEX_ROOT=/opt/ibm/ILOG/CPLEX_Studio201/cplex/
+    export DOWNWARD_CPLEX_CONCERT64=/opt/ibm/ILOG/CPLEX_Studio201/concert/
+
+    ##Build OSI
+    tar xvzf Osi-0.107.9.tgz
+    cd Osi-0.107.9
+    export DOWNWARD_COIN_ROOT=/opt/coin/
+
+    ./configure CC="gcc"  CFLAGS="-pthread -Wno-long-long" \
+            CXX="g++" CXXFLAGS="-pthread -Wno-long-long" \
+            LDFLAGS="-L$DOWNWARD_CPLEX_ROOT/lib/x86-64_linux/static_pic" \
+            --without-lapack --enable-static=yes \
+            --prefix="$DOWNWARD_COIN_ROOT" \
+            --disable-bzlib  \
+            --with-cplex-incdir=$DOWNWARD_CPLEX_ROOT/include/ilcplex \
+            --with-cplex-lib="-lcplex -lm -ldl"
+
+    make
+    make install
+
+    cd ..
+
+
+    ## Build planner.
+    pypy3 build.py release64
+
+    ## Strip binaries (shell globs don't work).
+    strip --strip-all /builds/release64/bin/downward
+    strip --strip-all /builds/release64/bin/preprocess-h2
+
+# Stage 2: Run the planner
+Bootstrap: docker
+From: ubuntu:kinetic
+Stage: run
+
+%files from build
+    fast-downward.py
+    driver
+    builds/release64/bin/
+    third-party/bliss-0.73/
+    /opt/ibm/ILOG/CPLEX_Studio201/cplex/
+    /opt/ibm/ILOG/CPLEX_Studio201/concert/
+    /opt/coin/
+
+%post
+    apt-get update
+    apt-get -y install --no-install-recommends pypy3
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    DOMAINFILE="$1"
+    PROBLEMFILE="$2"
+    PLANFILE="$3"
+
+    pypy3 /fast-downward.py \
+        --plan-file "$PLANFILE" \
+        --build release64 \
+        --alias "seq-agl-decstar" \
+        --overall-memory-limit 8000M \
+        --overall-time-limit 5m \
+        "$DOMAINFILE" "$PROBLEMFILE"
+
+%labels
+Name        DecStar-2023
+Description Agile planner based on decoupled state-space search.
+Authors     Daniel Gnad <daniel.gnad@liu.se>, Alvaro Torralba <alto@cs.aau.dk>, Alexander Shleyfman <shleyfman.alexander@gmail.com>
+License     GPL 3
+Tracks      agile
+SupportsDerivedPredicates                       no
+SupportsUniversallyQuantifiedPreconditions      yes
+SupportsExistentiallyQuantifiedPreconditions    partially, only quantification over static predicates
+SupportsUniversallyQuantifiedEffects            yes
+SupportsNegativePreconditions                   yes
+SupportsEqualityPreconditions                   yes
+SupportsInequalityPreconditions                 yes
+SupportsConditionalEffects                      yes
+SupportsImplyPreconditions                      yes

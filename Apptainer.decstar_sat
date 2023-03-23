@@ -88,20 +88,19 @@ Stage: run
     pypy3 /fast-downward.py \
         --plan-file "$PLANFILE" \
         --build release64 \
+        --alias "seq-sat-decstar" \
         --overall-memory-limit 8000M \
         --overall-time-limit 30m \
         --transform-task /builds/release64/bin/preprocess-h2 \
-        --transform-task-options h2_time_limit,180 \
-        "$DOMAINFILE" "$PROBLEMFILE" \
-        --decoupling "lp_general(factoring_time_limit=30, memory_limit=7000, add_cg_sccs=true, strategy=mm_approx, min_flexibility=0.8)" \
-        --search "astar(lmcut, pruning=stubborn_sets_decoupled(min_pruning_ratio=0.25, special_case_optimizations=true, use_single_var_ifork_optimization=true), symmetry=symmetry_state_pruning(lex_prices=true, lex_num_states=false, lex_goal_cost=false))"
+        --transform-task-options h2_time_limit,120 \
+        "$DOMAINFILE" "$PROBLEMFILE"
 
 %labels
-Name        DecStar 2023
-Description Optimal planner based on decoupled state-space search.
-Authors     Daniel Gnad <daniel.gnad@liu.se>, Alvaro Torralba <alto@cs.aau.dk>
+Name        DecStar-2023
+Description Satisficing planner based on decoupled state-space search.
+Authors     Daniel Gnad <daniel.gnad@liu.se>, Alvaro Torralba <alto@cs.aau.dk>, Alexander Shleyfman <shleyfman.alexander@gmail.com>
 License     GPL 3
-Tracks      optimal
+Tracks      satisficing
 SupportsDerivedPredicates                       no
 SupportsUniversallyQuantifiedPreconditions      yes
 SupportsExistentiallyQuantifiedPreconditions    partially, only quantification over static predicates
@@ -109,5 +108,5 @@ SupportsUniversallyQuantifiedEffects            yes
 SupportsNegativePreconditions                   yes
 SupportsEqualityPreconditions                   yes
 SupportsInequalityPreconditions                 yes
-SupportsConditionalEffects                      no
+SupportsConditionalEffects                      yes
 SupportsImplyPreconditions                      yes
